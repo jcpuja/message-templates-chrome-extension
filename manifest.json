@@ -3,9 +3,10 @@
   "name": "Message Templates",
   "version": "0.1.0",
   "description": "Insert predefined message templates from the right-click menu in editable fields.",
-  "permissions": ["contextMenus", "scripting"],
+  "permissions": ["contextMenus", "scripting", "storage"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "options_page": "options.html"
 }
