@@ -2,6 +2,7 @@ const ROOT_MENU_ID = "message-templates-root";
 const STORAGE_KEY = "message-templates";
 
 const DEFAULT_TEMPLATES = [];
+let menuRefreshQueue = Promise.resolve();
 
 function sanitizeTemplate(template) {
   if (!template || typeof template !== "object") {
@@ -35,24 +36,29 @@ async function getTemplates() {
 }
 
 async function createContextMenus() {
+  menuRefreshQueue = menuRefreshQueue.then(rebuildContextMenus, rebuildContextMenus);
+  return menuRefreshQueue;
+}
+
+async function rebuildContextMenus() {
   const templates = await getTemplates();
+  await chrome.contextMenus.removeAll();
+  await chrome.contextMenus.create({
+    id: ROOT_MENU_ID,
+    title: "Insert message template",
+    contexts: ["editable"]
+  });
 
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: ROOT_MENU_ID,
-      title: "Insert message template",
-      contexts: ["editable"]
-    });
-
-    templates.forEach((template, index) => {
+  await Promise.all(
+    templates.map((template, index) =>
       chrome.contextMenus.create({
         id: buildMenuId(index),
         parentId: ROOT_MENU_ID,
         title: template.name,
         contexts: ["editable"]
-      });
-    });
-  });
+      })
+    )
+  );
 }
 
 function insertTemplateText(text) {
