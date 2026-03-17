@@ -38,8 +38,10 @@ function insertTemplateText(text) {
     return;
   }
 
+  const textSelectableInputTypes = new Set(["text", "search", "url", "tel", "password"]);
   const isTextInput =
-    activeElement instanceof HTMLInputElement ||
+    (activeElement instanceof HTMLInputElement &&
+      textSelectableInputTypes.has(activeElement.type.toLowerCase())) ||
     activeElement instanceof HTMLTextAreaElement;
   const isContentEditable = activeElement.isContentEditable;
 
