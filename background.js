@@ -1,7 +1,12 @@
 const ROOT_MENU_ID = "message-templates-root";
 const STORAGE_KEY = "message-templates";
 
-const DEFAULT_TEMPLATES = [];
+const DEFAULT_TEMPLATES = [
+  {
+    name: "Example template",
+    text: "A simple example text template"
+  }
+];
 let menuRefreshQueue = Promise.resolve();
 
 function sanitizeTemplate(template) {
