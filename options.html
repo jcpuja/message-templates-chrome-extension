@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Message Templates Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Message Templates</h1>
+      <p>Configure the templates shown in the context menu.</p>
+
+      <form id="template-form">
+        <label for="template-name">Name</label>
+        <input id="template-name" name="name" type="text" maxlength="80" required />
+
+        <label for="template-text">Text</label>
+        <textarea id="template-text" name="text" rows="4" required></textarea>
+
+        <button type="submit">Add template</button>
+      </form>
+
+      <p id="status" role="status" aria-live="polite"></p>
+      <ul id="template-list"></ul>
+    </main>
+
+    <script src="options.js"></script>
+  </body>
+</html>
