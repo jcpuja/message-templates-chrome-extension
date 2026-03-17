@@ -18,7 +18,10 @@
         <label for="template-text">Text</label>
         <textarea id="template-text" name="text" rows="4" required></textarea>
 
-        <button type="submit">Add template</button>
+        <div class="form-actions">
+          <button id="form-submit-button" type="submit">Add template</button>
+          <button id="form-cancel-button" type="button" class="secondary" hidden>Cancel edit</button>
+        </div>
       </form>
 
       <p id="status" role="status" aria-live="polite"></p>
