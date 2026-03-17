@@ -1,5 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Message Templates",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "description": "Insert predefined message templates from the right-click menu in editable fields.",
+  "permissions": ["contextMenus", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js"
+  }
 }
