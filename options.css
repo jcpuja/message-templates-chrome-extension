@@ -47,8 +47,20 @@ button {
   cursor: pointer;
 }
 
+button.secondary,
+button.edit {
+  background: #5f6368;
+}
+
 button.delete {
   background: #c5221f;
+}
+
+.form-actions,
+.template-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 ul {
