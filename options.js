@@ -6,7 +6,7 @@ const formCancelButton = document.getElementById("form-cancel-button");
 const templateList = document.getElementById("template-list");
 const statusElement = document.getElementById("status");
 
-let editingIndex = null;
+let editingTemplateId = null;
 
 function setStatus(message) {
   statusElement.textContent = message;
@@ -18,27 +18,29 @@ function setFormMode(isEditing) {
 }
 
 function resetForm() {
-  editingIndex = null;
+  editingTemplateId = null;
   templateForm.reset();
   setFormMode(false);
 }
 
-function createDeleteButton(index) {
+function createDeleteButton(templateId) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "delete";
   button.textContent = "Delete";
   button.addEventListener("click", async () => {
     const templates = await getStoredTemplates();
-    templates.splice(index, 1);
+    const nextTemplates = templates.filter((template) => template.id !== templateId);
 
-    if (editingIndex === index) {
-      resetForm();
-    } else if (editingIndex !== null && index < editingIndex) {
-      editingIndex -= 1;
+    if (nextTemplates.length === templates.length) {
+      return;
     }
 
-    await saveTemplates(templates);
+    if (editingTemplateId === templateId) {
+      resetForm();
+    }
+
+    await saveTemplates(nextTemplates);
     await renderTemplates();
     setStatus("Template deleted.");
   });
@@ -46,13 +48,13 @@ function createDeleteButton(index) {
   return button;
 }
 
-function createEditButton(template, index) {
+function createEditButton(template) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "edit";
   button.textContent = "Edit";
   button.addEventListener("click", () => {
-    editingIndex = index;
+    editingTemplateId = template.id;
     templateNameInput.value = template.name;
     templateTextInput.value = template.text;
     setFormMode(true);
@@ -63,7 +65,7 @@ function createEditButton(template, index) {
   return button;
 }
 
-function createTemplateItem(template, index) {
+function createTemplateItem(template) {
   const item = document.createElement("li");
 
   const header = document.createElement("div");
@@ -75,8 +77,8 @@ function createTemplateItem(template, index) {
   const actions = document.createElement("div");
   actions.className = "template-actions";
 
-  const editButton = createEditButton(template, index);
-  const removeButton = createDeleteButton(index);
+  const editButton = createEditButton(template);
+  const removeButton = createDeleteButton(template.id);
   actions.append(editButton, removeButton);
 
   header.append(title, actions);
@@ -93,8 +95,8 @@ async function renderTemplates() {
   const templates = await getStoredTemplates();
   templateList.replaceChildren();
 
-  templates.forEach((template, index) => {
-    templateList.append(createTemplateItem(template, index));
+  templates.forEach((template) => {
+    templateList.append(createTemplateItem(template));
   });
 }
 
@@ -107,6 +109,7 @@ templateForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const template = sanitizeTemplate({
+    id: editingTemplateId ?? generateTemplateId(),
     name: templateNameInput.value,
     text: templateTextInput.value
   });
@@ -118,15 +121,19 @@ templateForm.addEventListener("submit", async (event) => {
 
   const templates = await getStoredTemplates();
 
-  if (editingIndex !== null) {
-    if (!templates[editingIndex]) {
+  if (editingTemplateId !== null) {
+    const templateIndex = templates.findIndex(
+      (storedTemplate) => storedTemplate.id === editingTemplateId
+    );
+
+    if (templateIndex === -1) {
       resetForm();
       await renderTemplates();
       setStatus("Template no longer exists.");
       return;
     }
 
-    templates[editingIndex] = template;
+    templates[templateIndex] = template;
     await saveTemplates(templates);
     await renderTemplates();
     resetForm();

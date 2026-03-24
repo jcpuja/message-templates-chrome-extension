@@ -1,25 +1,33 @@
 const STORAGE_KEY = "message-templates";
 
-const DEFAULT_TEMPLATES = [
-  {
-    name: "Example template",
-    text: "A simple example text template"
-  }
-];
+function generateTemplateId() {
+  return crypto.randomUUID();
+}
+
+function createDefaultTemplates() {
+  return [
+    {
+      id: generateTemplateId(),
+      name: "Example template",
+      text: "A simple example text template"
+    }
+  ];
+}
 
 function sanitizeTemplate(template) {
   if (!template || typeof template !== "object") {
     return null;
   }
 
+  const id = typeof template.id === "string" ? template.id.trim() : "";
   const name = typeof template.name === "string" ? template.name.trim() : "";
   const text = typeof template.text === "string" ? template.text : "";
 
-  if (!name || !text) {
+  if (!id || !name || !text) {
     return null;
   }
 
-  return { name, text };
+  return { id, name, text };
 }
 
 function normalizeTemplates(templates) {
@@ -37,7 +45,7 @@ async function getStoredTemplates() {
 
 async function getTemplatesWithDefaults() {
   const templates = await getStoredTemplates();
-  return templates.length > 0 ? templates : DEFAULT_TEMPLATES;
+  return templates.length > 0 ? templates : createDefaultTemplates();
 }
 
 async function saveTemplates(templates) {
@@ -48,6 +56,6 @@ async function ensureDefaultTemplates() {
   const templates = await getStoredTemplates();
 
   if (templates.length === 0) {
-    await saveTemplates(DEFAULT_TEMPLATES);
+    await saveTemplates(createDefaultTemplates());
   }
 }

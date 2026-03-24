@@ -22,9 +22,9 @@ async function rebuildContextMenus() {
   });
 
   await Promise.all(
-    templates.map((template, index) =>
+    templates.map((template) =>
       chrome.contextMenus.create({
-        id: buildMenuId(index),
+        id: buildMenuId(template.id),
         parentId: ROOT_MENU_ID,
         title: template.name,
         contexts: ["editable"]
@@ -86,14 +86,14 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     return;
   }
 
-  const menuIdMatch = info.menuItemId.match(/^template-(\d+)$/);
+  const menuIdMatch = info.menuItemId.match(/^template-(.+)$/);
   if (!menuIdMatch) {
     return;
   }
 
-  const templateIndex = Number.parseInt(menuIdMatch[1], 10);
+  const templateId = menuIdMatch[1];
   const templates = await getTemplatesWithDefaults();
-  const selectedTemplate = templates[templateIndex];
+  const selectedTemplate = templates.find((template) => template.id === templateId);
 
   if (!selectedTemplate) {
     return;
