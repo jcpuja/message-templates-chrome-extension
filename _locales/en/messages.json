@@ -1,0 +1,67 @@
+{
+  "extensionName": {
+    "message": "Message Templates"
+  },
+  "extensionDescription": {
+    "message": "Insert predefined message templates from the right-click menu."
+  },
+  "contextMenuRootTitle": {
+    "message": "Insert message template"
+  },
+  "optionsPageTitle": {
+    "message": "Message Templates Settings"
+  },
+  "optionsHeading": {
+    "message": "Message Templates"
+  },
+  "optionsDescription": {
+    "message": "Configure the templates shown in the context menu."
+  },
+  "templateNameLabel": {
+    "message": "Name"
+  },
+  "templateTextLabel": {
+    "message": "Text"
+  },
+  "addTemplateButton": {
+    "message": "Add template"
+  },
+  "saveChangesButton": {
+    "message": "Save changes"
+  },
+  "cancelEditButton": {
+    "message": "Cancel edit"
+  },
+  "editButton": {
+    "message": "Edit"
+  },
+  "deleteButton": {
+    "message": "Delete"
+  },
+  "statusTemplateDeleted": {
+    "message": "Template deleted."
+  },
+  "statusEditingTemplate": {
+    "message": "Editing template: $templateName$",
+    "placeholders": {
+      "templateName": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusEditCancelled": {
+    "message": "Edit cancelled."
+  },
+  "statusTemplateValidationError": {
+    "message": "Please provide both name and text."
+  },
+  "statusTemplateMissing": {
+    "message": "Template no longer exists."
+  },
+  "statusTemplateUpdated": {
+    "message": "Template updated."
+  },
+  "statusTemplateAdded": {
+    "message": "Template added."
+  }
+}

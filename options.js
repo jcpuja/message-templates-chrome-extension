@@ -8,12 +8,31 @@ const statusElement = document.getElementById("status");
 
 let editingTemplateId = null;
 
+function getMessage(key, substitutions) {
+  return chrome.i18n.getMessage(key, substitutions) || key;
+}
+
+function localizePage() {
+  document.title = getMessage("optionsPageTitle");
+
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.dataset.i18n;
+    if (!key) {
+      return;
+    }
+
+    element.textContent = getMessage(key);
+  });
+}
+
 function setStatus(message) {
   statusElement.textContent = message;
 }
 
 function setFormMode(isEditing) {
-  formSubmitButton.textContent = isEditing ? "Save changes" : "Add template";
+  formSubmitButton.textContent = isEditing
+    ? getMessage("saveChangesButton")
+    : getMessage("addTemplateButton");
   formCancelButton.hidden = !isEditing;
 }
 
@@ -27,7 +46,7 @@ function createDeleteButton(templateId) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "delete";
-  button.textContent = "Delete";
+  button.textContent = getMessage("deleteButton");
   button.addEventListener("click", async () => {
     const templates = await getStoredTemplates();
     const nextTemplates = templates.filter((template) => template.id !== templateId);
@@ -42,7 +61,7 @@ function createDeleteButton(templateId) {
 
     await saveTemplates(nextTemplates);
     await renderTemplates();
-    setStatus("Template deleted.");
+    setStatus(getMessage("statusTemplateDeleted"));
   });
 
   return button;
@@ -52,14 +71,14 @@ function createEditButton(template) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "edit";
-  button.textContent = "Edit";
+  button.textContent = getMessage("editButton");
   button.addEventListener("click", () => {
     editingTemplateId = template.id;
     templateNameInput.value = template.name;
     templateTextInput.value = template.text;
     setFormMode(true);
     templateNameInput.focus();
-    setStatus(`Editing template: ${template.name}`);
+    setStatus(getMessage("statusEditingTemplate", template.name));
   });
 
   return button;
@@ -102,7 +121,7 @@ async function renderTemplates() {
 
 formCancelButton.addEventListener("click", () => {
   resetForm();
-  setStatus("Edit cancelled.");
+  setStatus(getMessage("statusEditCancelled"));
 });
 
 templateForm.addEventListener("submit", async (event) => {
@@ -115,7 +134,7 @@ templateForm.addEventListener("submit", async (event) => {
   });
 
   if (!template) {
-    setStatus("Please provide both name and text.");
+    setStatus(getMessage("statusTemplateValidationError"));
     return;
   }
 
@@ -129,7 +148,7 @@ templateForm.addEventListener("submit", async (event) => {
     if (templateIndex === -1) {
       resetForm();
       await renderTemplates();
-      setStatus("Template no longer exists.");
+      setStatus(getMessage("statusTemplateMissing"));
       return;
     }
 
@@ -137,7 +156,7 @@ templateForm.addEventListener("submit", async (event) => {
     await saveTemplates(templates);
     await renderTemplates();
     resetForm();
-    setStatus("Template updated.");
+    setStatus(getMessage("statusTemplateUpdated"));
     return;
   }
 
@@ -146,8 +165,9 @@ templateForm.addEventListener("submit", async (event) => {
 
   resetForm();
   await renderTemplates();
-  setStatus("Template added.");
+  setStatus(getMessage("statusTemplateAdded"));
 });
 
+localizePage();
 setFormMode(false);
 renderTemplates();

@@ -3,6 +3,10 @@ importScripts("template-store.js");
 const ROOT_MENU_ID = "message-templates-root";
 let menuRefreshQueue = Promise.resolve();
 
+function getMessage(key, substitutions) {
+  return chrome.i18n.getMessage(key, substitutions) || key;
+}
+
 function buildMenuId(index) {
   return `template-${index}`;
 }
@@ -17,7 +21,7 @@ async function rebuildContextMenus() {
   await chrome.contextMenus.removeAll();
   await chrome.contextMenus.create({
     id: ROOT_MENU_ID,
-    title: "Insert message template",
+    title: getMessage("contextMenuRootTitle"),
     contexts: ["editable"]
   });
 

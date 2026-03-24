@@ -1,0 +1,67 @@
+{
+  "extensionName": {
+    "message": "Modèles de messages"
+  },
+  "extensionDescription": {
+    "message": "Insérez des modèles de messages prédéfinis depuis le menu contextuel."
+  },
+  "contextMenuRootTitle": {
+    "message": "Insérer un modèle de message"
+  },
+  "optionsPageTitle": {
+    "message": "Paramètres des modèles de messages"
+  },
+  "optionsHeading": {
+    "message": "Modèles de messages"
+  },
+  "optionsDescription": {
+    "message": "Configurez les modèles affichés dans le menu contextuel."
+  },
+  "templateNameLabel": {
+    "message": "Nom"
+  },
+  "templateTextLabel": {
+    "message": "Texte"
+  },
+  "addTemplateButton": {
+    "message": "Ajouter un modèle"
+  },
+  "saveChangesButton": {
+    "message": "Enregistrer les modifications"
+  },
+  "cancelEditButton": {
+    "message": "Annuler la modification"
+  },
+  "editButton": {
+    "message": "Modifier"
+  },
+  "deleteButton": {
+    "message": "Supprimer"
+  },
+  "statusTemplateDeleted": {
+    "message": "Modèle supprimé."
+  },
+  "statusEditingTemplate": {
+    "message": "Modification du modèle : $templateName$",
+    "placeholders": {
+      "templateName": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusEditCancelled": {
+    "message": "Modification annulée."
+  },
+  "statusTemplateValidationError": {
+    "message": "Veuillez saisir un nom et un texte."
+  },
+  "statusTemplateMissing": {
+    "message": "Ce modèle n'existe plus."
+  },
+  "statusTemplateUpdated": {
+    "message": "Modèle mis à jour."
+  },
+  "statusTemplateAdded": {
+    "message": "Modèle ajouté."
+  }
+}

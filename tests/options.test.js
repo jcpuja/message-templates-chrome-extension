@@ -27,12 +27,50 @@ async function flushTasks() {
 describe("options.js", () => {
   let chrome;
   let context;
+  let messages;
   let storedTemplates;
 
   beforeEach(async () => {
     storedTemplates = [{ id: "welcome", name: "Welcome", text: "Hello there" }];
+    messages = {
+      optionsPageTitle: "Message Templates Settings",
+      optionsHeading: "Message Templates",
+      optionsDescription: "Configure the templates shown in the context menu.",
+      templateNameLabel: "Name",
+      templateTextLabel: "Text",
+      addTemplateButton: "Add template",
+      saveChangesButton: "Save changes",
+      cancelEditButton: "Cancel edit",
+      editButton: "Edit",
+      deleteButton: "Delete",
+      statusTemplateDeleted: "Template deleted.",
+      statusEditingTemplate: "Editing template: $1$",
+      statusEditCancelled: "Edit cancelled.",
+      statusTemplateValidationError: "Please provide both name and text.",
+      statusTemplateMissing: "Template no longer exists.",
+      statusTemplateUpdated: "Template updated.",
+      statusTemplateAdded: "Template added."
+    };
 
     chrome = {
+      i18n: {
+        getMessage: vi.fn((key, substitutions) => {
+          const message = messages[key];
+          if (!message) {
+            return "";
+          }
+
+          if (substitutions === undefined) {
+            return message;
+          }
+
+          const values = Array.isArray(substitutions) ? substitutions : [substitutions];
+          return values.reduce(
+            (currentMessage, value, index) => currentMessage.replace(`$${index + 1}$`, value),
+            message
+          );
+        })
+      },
       storage: {
         sync: {
           get: vi.fn(async () => ({ "message-templates": storedTemplates })),
@@ -60,8 +98,11 @@ describe("options.js", () => {
     const items = [...context.document.querySelectorAll("#template-list li")];
 
     expect(items).toHaveLength(1);
+    expect(context.document.title).toBe("Message Templates Settings");
     expect(items[0].querySelector("strong")?.textContent).toBe("Welcome");
     expect(items[0].querySelector(".template-text")?.textContent).toBe("Hello there");
+    expect(context.document.querySelector("button.edit")?.textContent).toBe("Edit");
+    expect(context.document.querySelector("button.delete")?.textContent).toBe("Delete");
   });
 
   it("enters edit mode and populates the form when edit is clicked", () => {

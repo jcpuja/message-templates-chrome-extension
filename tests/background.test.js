@@ -10,13 +10,36 @@ async function flushTasks() {
 describe("background.js", () => {
   let chrome;
   let context;
+  let messages;
   let onInstalledListener;
   let onStartupListener;
   let onStorageChangedListener;
   let onContextMenuClickedListener;
 
   beforeEach(() => {
+    messages = {
+      contextMenuRootTitle: "Insert message template"
+    };
+
     chrome = {
+      i18n: {
+        getMessage: vi.fn((key, substitutions) => {
+          const message = messages[key];
+          if (!message) {
+            return "";
+          }
+
+          if (substitutions === undefined) {
+            return message;
+          }
+
+          const values = Array.isArray(substitutions) ? substitutions : [substitutions];
+          return values.reduce(
+            (currentMessage, value, index) => currentMessage.replace(`$${index + 1}$`, value),
+            message
+          );
+        })
+      },
       storage: {
         sync: {
           get: vi.fn(),

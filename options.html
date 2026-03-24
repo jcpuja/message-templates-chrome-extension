@@ -3,24 +3,34 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Message Templates Settings</title>
+    <title data-i18n="optionsPageTitle">Message Templates Settings</title>
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
     <main>
-      <h1>Message Templates</h1>
-      <p>Configure the templates shown in the context menu.</p>
+      <h1 data-i18n="optionsHeading">Message Templates</h1>
+      <p data-i18n="optionsDescription">Configure the templates shown in the context menu.</p>
 
       <form id="template-form">
-        <label for="template-name">Name</label>
+        <label for="template-name" data-i18n="templateNameLabel">Name</label>
         <input id="template-name" name="name" type="text" maxlength="80" required />
 
-        <label for="template-text">Text</label>
+        <label for="template-text" data-i18n="templateTextLabel">Text</label>
         <textarea id="template-text" name="text" rows="4" required></textarea>
 
         <div class="form-actions">
-          <button id="form-submit-button" type="submit">Add template</button>
-          <button id="form-cancel-button" type="button" class="secondary" hidden>Cancel edit</button>
+          <button id="form-submit-button" type="submit" data-i18n="addTemplateButton">
+            Add template
+          </button>
+          <button
+            id="form-cancel-button"
+            type="button"
+            class="secondary"
+            hidden
+            data-i18n="cancelEditButton"
+          >
+            Cancel edit
+          </button>
         </div>
       </form>
 
