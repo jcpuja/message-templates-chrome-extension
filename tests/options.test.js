@@ -11,6 +11,9 @@ const optionsHtml = `
       <button id="form-submit-button" type="submit">Add template</button>
       <button id="form-cancel-button" type="button" hidden>Cancel edit</button>
     </form>
+    <button id="export-templates-button" type="button">Export templates</button>
+    <button id="import-templates-button" type="button">Import templates</button>
+    <input id="import-templates-input" type="file" />
     <p id="status"></p>
     <ul id="template-list"></ul>
   </body>
@@ -29,6 +32,8 @@ describe("options.js", () => {
   let context;
   let messages;
   let storedTemplates;
+  let createObjectURL;
+  let revokeObjectURL;
 
   beforeEach(async () => {
     storedTemplates = [{ id: "welcome", name: "Welcome", text: "Hello there" }];
@@ -41,6 +46,8 @@ describe("options.js", () => {
       addTemplateButton: "Add template",
       saveChangesButton: "Save changes",
       cancelEditButton: "Cancel edit",
+      exportTemplatesButton: "Export templates",
+      importTemplatesButton: "Import templates",
       editButton: "Edit",
       deleteButton: "Delete",
       statusTemplateDeleted: "Template deleted.",
@@ -49,8 +56,14 @@ describe("options.js", () => {
       statusTemplateValidationError: "Please provide both name and text.",
       statusTemplateMissing: "Template no longer exists.",
       statusTemplateUpdated: "Template updated.",
-      statusTemplateAdded: "Template added."
+      statusTemplateAdded: "Template added.",
+      statusTemplatesExported: "Exported $1$ templates.",
+      statusTemplatesImported: "Imported $1$ templates.",
+      statusTemplateImportFailed: "The selected file is not a valid template export."
     };
+
+    createObjectURL = vi.fn(() => "blob:export-url");
+    revokeObjectURL = vi.fn();
 
     chrome = {
       i18n: {
@@ -84,11 +97,16 @@ describe("options.js", () => {
     ({ context } = createBrowserContext({
       html: optionsHtml,
       globals: {
-        chrome
+        chrome,
+        URL: {
+          createObjectURL,
+          revokeObjectURL
+        }
       }
     }));
 
     context.crypto.randomUUID = vi.fn(() => "generated-id");
+    context.HTMLAnchorElement.prototype.click = vi.fn();
     loadScript(context, "template-store.js");
     loadScript(context, "options.js");
     await flushTasks();
@@ -103,6 +121,71 @@ describe("options.js", () => {
     expect(items[0].querySelector(".template-text")?.textContent).toBe("Hello there");
     expect(context.document.querySelector("button.edit")?.textContent).toBe("Edit");
     expect(context.document.querySelector("button.delete")?.textContent).toBe("Delete");
+  });
+
+  it("exports the current templates as a JSON download", async () => {
+    context.document.getElementById("export-templates-button").click();
+    await flushTasks();
+
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    const exportedBlob = createObjectURL.mock.calls[0][0];
+    const exportedPayload = JSON.parse(await exportedBlob.text());
+
+    expect(exportedPayload.schemaVersion).toBe(1);
+    expect(exportedPayload.templates).toEqual([
+      { id: "welcome", name: "Welcome", text: "Hello there" }
+    ]);
+    expect(revokeObjectURL).toHaveBeenCalledWith("blob:export-url");
+    expect(context.document.getElementById("status").textContent).toBe("Exported 1 templates.");
+  });
+
+  it("imports templates from a valid export file and replaces existing templates", async () => {
+    const importInput = context.document.getElementById("import-templates-input");
+    Object.defineProperty(importInput, "files", {
+      configurable: true,
+      value: [
+        {
+          text: vi.fn(async () =>
+            JSON.stringify({
+              schemaVersion: 1,
+              templates: [{ id: "follow-up", name: "Follow up", text: "Just checking in" }]
+            })
+          )
+        }
+      ]
+    });
+
+    importInput.dispatchEvent(new context.Event("change", { bubbles: true }));
+    await flushTasks();
+
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({
+      "message-templates": [{ id: "follow-up", name: "Follow up", text: "Just checking in" }]
+    });
+    expect(context.document.querySelectorAll("#template-list li")).toHaveLength(1);
+    expect(context.document.querySelector("#template-list strong")?.textContent).toBe("Follow up");
+    expect(context.document.getElementById("status").textContent).toBe("Imported 1 templates.");
+  });
+
+  it("shows an error when importing an invalid export file", async () => {
+    const importInput = context.document.getElementById("import-templates-input");
+    Object.defineProperty(importInput, "files", {
+      configurable: true,
+      value: [
+        {
+          text: vi.fn(async () => JSON.stringify({ schemaVersion: 1, templates: [{ id: "", name: "", text: "" }] }))
+        }
+      ]
+    });
+
+    importInput.dispatchEvent(new context.Event("change", { bubbles: true }));
+    await flushTasks();
+
+    expect(chrome.storage.sync.set).not.toHaveBeenCalledWith({
+      "message-templates": []
+    });
+    expect(context.document.getElementById("status").textContent).toBe(
+      "The selected file is not a valid template export."
+    );
   });
 
   it("enters edit mode and populates the form when edit is clicked", () => {

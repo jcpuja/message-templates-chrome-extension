@@ -3,6 +3,9 @@ const templateNameInput = document.getElementById("template-name");
 const templateTextInput = document.getElementById("template-text");
 const formSubmitButton = document.getElementById("form-submit-button");
 const formCancelButton = document.getElementById("form-cancel-button");
+const exportTemplatesButton = document.getElementById("export-templates-button");
+const importTemplatesButton = document.getElementById("import-templates-button");
+const importTemplatesInput = document.getElementById("import-templates-input");
 const templateList = document.getElementById("template-list");
 const statusElement = document.getElementById("status");
 
@@ -119,9 +122,55 @@ async function renderTemplates() {
   });
 }
 
+function downloadTemplatesFile(payload) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const downloadUrl = URL.createObjectURL(blob);
+  const downloadLink = document.createElement("a");
+
+  downloadLink.href = downloadUrl;
+  downloadLink.download = "message-templates-export.json";
+  downloadLink.click();
+
+  URL.revokeObjectURL(downloadUrl);
+}
+
 formCancelButton.addEventListener("click", () => {
   resetForm();
   setStatus(getMessage("statusEditCancelled"));
+});
+
+exportTemplatesButton.addEventListener("click", async () => {
+  const templates = await getStoredTemplates();
+  downloadTemplatesFile(buildTemplateExportPayload(templates));
+  setStatus(getMessage("statusTemplatesExported", String(templates.length)));
+});
+
+importTemplatesButton.addEventListener("click", () => {
+  importTemplatesInput.click();
+});
+
+importTemplatesInput.addEventListener("change", async () => {
+  const [selectedFile] = importTemplatesInput.files || [];
+
+  if (!selectedFile) {
+    return;
+  }
+
+  try {
+    const importedTemplates = parseImportedTemplates(await selectedFile.text());
+    await saveTemplates(importedTemplates);
+
+    if (editingTemplateId !== null) {
+      resetForm();
+    }
+
+    await renderTemplates();
+    setStatus(getMessage("statusTemplatesImported", String(importedTemplates.length)));
+  } catch (error) {
+    setStatus(getMessage("statusTemplateImportFailed"));
+  } finally {
+    importTemplatesInput.value = "";
+  }
 });
 
 templateForm.addEventListener("submit", async (event) => {

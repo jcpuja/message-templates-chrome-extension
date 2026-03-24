@@ -32,6 +32,12 @@
   "cancelEditButton": {
     "message": "Annuler la modification"
   },
+  "exportTemplatesButton": {
+    "message": "Exporter les modèles"
+  },
+  "importTemplatesButton": {
+    "message": "Importer les modèles"
+  },
   "editButton": {
     "message": "Modifier"
   },
@@ -63,5 +69,24 @@
   },
   "statusTemplateAdded": {
     "message": "Modèle ajouté."
+  },
+  "statusTemplatesExported": {
+    "message": "$templateCount$ modèles exportés.",
+    "placeholders": {
+      "templateCount": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusTemplatesImported": {
+    "message": "$templateCount$ modèles importés.",
+    "placeholders": {
+      "templateCount": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusTemplateImportFailed": {
+    "message": "Le fichier sélectionné n'est pas une exportation de modèles valide."
   }
 }

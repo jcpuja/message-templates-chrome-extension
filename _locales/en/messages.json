@@ -32,6 +32,12 @@
   "cancelEditButton": {
     "message": "Cancel edit"
   },
+  "exportTemplatesButton": {
+    "message": "Export templates"
+  },
+  "importTemplatesButton": {
+    "message": "Import templates"
+  },
   "editButton": {
     "message": "Edit"
   },
@@ -63,5 +69,24 @@
   },
   "statusTemplateAdded": {
     "message": "Template added."
+  },
+  "statusTemplatesExported": {
+    "message": "Exported $templateCount$ templates.",
+    "placeholders": {
+      "templateCount": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusTemplatesImported": {
+    "message": "Imported $templateCount$ templates.",
+    "placeholders": {
+      "templateCount": {
+        "content": "$1"
+      }
+    }
+  },
+  "statusTemplateImportFailed": {
+    "message": "The selected file is not a valid template export."
   }
 }

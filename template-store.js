@@ -1,4 +1,5 @@
 const STORAGE_KEY = "message-templates";
+const EXPORT_SCHEMA_VERSION = 1;
 
 function generateTemplateId() {
   return crypto.randomUUID();
@@ -36,6 +37,60 @@ function normalizeTemplates(templates) {
   }
 
   return templates.map(sanitizeTemplate).filter(Boolean);
+}
+
+function dedupeTemplatesById(templates) {
+  const seenTemplateIds = new Set();
+
+  return templates.filter((template) => {
+    if (seenTemplateIds.has(template.id)) {
+      return false;
+    }
+
+    seenTemplateIds.add(template.id);
+    return true;
+  });
+}
+
+function buildTemplateExportPayload(templates) {
+  return {
+    schemaVersion: EXPORT_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    templates: dedupeTemplatesById(normalizeTemplates(templates))
+  };
+}
+
+function parseImportedTemplates(rawText) {
+  let parsedPayload;
+
+  try {
+    parsedPayload = JSON.parse(rawText);
+  } catch (error) {
+    throw new Error("invalid-json");
+  }
+
+  if (!parsedPayload || typeof parsedPayload !== "object") {
+    throw new Error("invalid-format");
+  }
+
+  if (parsedPayload.schemaVersion !== EXPORT_SCHEMA_VERSION) {
+    throw new Error("unsupported-version");
+  }
+
+  if (!Array.isArray(parsedPayload.templates)) {
+    throw new Error("invalid-format");
+  }
+
+  const normalizedTemplates = normalizeTemplates(parsedPayload.templates);
+
+  if (
+    parsedPayload.templates.length > 0 &&
+    normalizedTemplates.length !== parsedPayload.templates.length
+  ) {
+    throw new Error("invalid-template");
+  }
+
+  return dedupeTemplatesById(normalizedTemplates);
 }
 
 async function getStoredTemplates() {

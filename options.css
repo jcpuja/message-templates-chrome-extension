@@ -57,10 +57,16 @@ button.delete {
 }
 
 .form-actions,
-.template-actions {
+.template-actions,
+.transfer-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.transfer-actions {
+  margin-bottom: 16px;
 }
 
 ul {

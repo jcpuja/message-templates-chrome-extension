@@ -89,6 +89,49 @@ describe("template-store.js", () => {
     });
   });
 
+  it("builds an export payload with a schema version and normalized templates", () => {
+    const payload = context.buildTemplateExportPayload([
+      { id: " one ", name: " First ", text: "Hello" },
+      { id: "two", name: "Second", text: "World" }
+    ]);
+
+    expect(payload.schemaVersion).toBe(1);
+    expect(payload.exportedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(payload.templates).toEqual([
+      { id: "one", name: "First", text: "Hello" },
+      { id: "two", name: "Second", text: "World" }
+    ]);
+  });
+
+  it("parses a valid export payload and rejects invalid imports", () => {
+    expect(
+      context.parseImportedTemplates(
+        JSON.stringify({
+          schemaVersion: 1,
+          templates: [{ id: " one ", name: " First ", text: "Hello" }]
+        })
+      )
+    ).toEqual([{ id: "one", name: "First", text: "Hello" }]);
+
+    expect(() => context.parseImportedTemplates("{")).toThrow("invalid-json");
+    expect(() =>
+      context.parseImportedTemplates(
+        JSON.stringify({
+          schemaVersion: 2,
+          templates: []
+        })
+      )
+    ).toThrow("unsupported-version");
+    expect(() =>
+      context.parseImportedTemplates(
+        JSON.stringify({
+          schemaVersion: 1,
+          templates: [{ id: "missing-name", name: "", text: "Hello" }]
+        })
+      )
+    ).toThrow("invalid-template");
+  });
+
   it("writes default templates only when storage is empty", async () => {
     chrome.storage.sync.get.mockResolvedValueOnce({ "message-templates": [] });
 
