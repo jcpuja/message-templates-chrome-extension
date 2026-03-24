@@ -10,6 +10,7 @@ const templateList = document.getElementById("template-list");
 const statusElement = document.getElementById("status");
 
 let editingTemplateId = null;
+let draggedTemplateId = null;
 
 function getMessage(key, substitutions) {
   return chrome.i18n.getMessage(key, substitutions) || key;
@@ -87,14 +88,117 @@ function createEditButton(template) {
   return button;
 }
 
+function moveTemplate(templates, sourceTemplateId, targetTemplateId) {
+  if (sourceTemplateId === targetTemplateId) {
+    return templates;
+  }
+
+  const sourceIndex = templates.findIndex((template) => template.id === sourceTemplateId);
+  const targetIndex = templates.findIndex((template) => template.id === targetTemplateId);
+
+  if (sourceIndex === -1 || targetIndex === -1) {
+    return templates;
+  }
+
+  const reorderedTemplates = [...templates];
+  const [movedTemplate] = reorderedTemplates.splice(sourceIndex, 1);
+  reorderedTemplates.splice(targetIndex, 0, movedTemplate);
+  return reorderedTemplates;
+}
+
+function createDragHandle(template) {
+  const handle = document.createElement("button");
+  handle.type = "button";
+  handle.className = "drag-handle";
+  handle.draggable = true;
+  handle.textContent = "≡";
+  handle.setAttribute("aria-label", getMessage("templateReorderHandleLabel", template.name));
+  handle.title = getMessage("templateReorderHandleLabel", template.name);
+  handle.addEventListener("dragstart", (event) => {
+    draggedTemplateId = template.id;
+    const templateItem = handle.closest("li");
+
+    if (templateItem) {
+      templateItem.classList.add("dragging");
+    }
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", template.id);
+    }
+  });
+  handle.addEventListener("dragend", () => {
+    draggedTemplateId = null;
+    templateList.querySelectorAll(".dragging").forEach((item) => {
+      item.classList.remove("dragging");
+    });
+    templateList.querySelectorAll(".drag-over").forEach((item) => {
+      item.classList.remove("drag-over");
+    });
+  });
+
+  return handle;
+}
+
 function createTemplateItem(template) {
   const item = document.createElement("li");
+  item.dataset.templateId = template.id;
+  item.addEventListener("dragover", (event) => {
+    if (!draggedTemplateId || draggedTemplateId === template.id) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "move";
+    }
+
+    templateList.querySelectorAll(".drag-over").forEach((entry) => {
+      if (entry !== item) {
+        entry.classList.remove("drag-over");
+      }
+    });
+    item.classList.add("drag-over");
+  });
+  item.addEventListener("dragleave", (event) => {
+    if (event.currentTarget === event.target) {
+      item.classList.remove("drag-over");
+    }
+  });
+  item.addEventListener("drop", async (event) => {
+    event.preventDefault();
+    item.classList.remove("drag-over");
+
+    if (!draggedTemplateId || draggedTemplateId === template.id) {
+      return;
+    }
+
+    const templates = await getStoredTemplates();
+    const nextTemplates = moveTemplate(templates, draggedTemplateId, template.id);
+
+    if (nextTemplates === templates) {
+      return;
+    }
+
+    await saveTemplates(nextTemplates);
+    await renderTemplates();
+
+    const movedTemplate = nextTemplates.find((entry) => entry.id === draggedTemplateId);
+    setStatus(getMessage("statusTemplateReordered", movedTemplate?.name || ""));
+  });
 
   const header = document.createElement("div");
   header.className = "template-header";
 
+  const identity = document.createElement("div");
+  identity.className = "template-identity";
+
+  const dragHandle = createDragHandle(template);
+
   const title = document.createElement("strong");
   title.textContent = template.name;
+  identity.append(dragHandle, title);
 
   const actions = document.createElement("div");
   actions.className = "template-actions";
@@ -103,7 +207,7 @@ function createTemplateItem(template) {
   const removeButton = createDeleteButton(template.id);
   actions.append(editButton, removeButton);
 
-  header.append(title, actions);
+  header.append(identity, actions);
 
   const text = document.createElement("p");
   text.className = "template-text";

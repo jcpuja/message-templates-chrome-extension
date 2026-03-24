@@ -14,6 +14,7 @@ const optionsHtml = `
     <button id="export-templates-button" type="button">Export templates</button>
     <button id="import-templates-button" type="button">Import templates</button>
     <input id="import-templates-input" type="file" />
+    <p class="template-order-help">Drag templates to change the order shown in the context menu.</p>
     <p id="status"></p>
     <ul id="template-list"></ul>
   </body>
@@ -48,6 +49,8 @@ describe("options.js", () => {
       cancelEditButton: "Cancel edit",
       exportTemplatesButton: "Export templates",
       importTemplatesButton: "Import templates",
+      templateOrderHelp: "Drag templates to change the order shown in the context menu.",
+      templateReorderHandleLabel: "Drag to reorder template: $1$",
       editButton: "Edit",
       deleteButton: "Delete",
       statusTemplateDeleted: "Template deleted.",
@@ -57,6 +60,7 @@ describe("options.js", () => {
       statusTemplateMissing: "Template no longer exists.",
       statusTemplateUpdated: "Template updated.",
       statusTemplateAdded: "Template added.",
+      statusTemplateReordered: "Template order updated for $1$.",
       statusTemplatesExported: "Exported $1$ templates.",
       statusTemplatesImported: "Imported $1$ templates.",
       statusTemplateImportFailed: "The selected file is not a valid template export."
@@ -119,8 +123,63 @@ describe("options.js", () => {
     expect(context.document.title).toBe("Message Templates Settings");
     expect(items[0].querySelector("strong")?.textContent).toBe("Welcome");
     expect(items[0].querySelector(".template-text")?.textContent).toBe("Hello there");
+    expect(items[0].querySelector(".drag-handle")?.getAttribute("aria-label")).toBe(
+      "Drag to reorder template: Welcome"
+    );
     expect(context.document.querySelector("button.edit")?.textContent).toBe("Edit");
     expect(context.document.querySelector("button.delete")?.textContent).toBe("Delete");
+  });
+
+  it("reorders templates via drag and drop and persists the new order", async () => {
+    storedTemplates = [
+      { id: "welcome", name: "Welcome", text: "Hello there" },
+      { id: "follow-up", name: "Follow up", text: "Just checking in" }
+    ];
+
+    await context.renderTemplates();
+
+    const handles = [...context.document.querySelectorAll(".drag-handle")];
+    const items = [...context.document.querySelectorAll("#template-list li")];
+    const dragData = {
+      effectAllowed: "",
+      dropEffect: "",
+      setData: vi.fn()
+    };
+
+    const dragStartEvent = new context.Event("dragstart", { bubbles: true });
+    Object.defineProperty(dragStartEvent, "dataTransfer", {
+      configurable: true,
+      value: dragData
+    });
+    handles[1].dispatchEvent(dragStartEvent);
+
+    const dragOverEvent = new context.Event("dragover", { bubbles: true, cancelable: true });
+    Object.defineProperty(dragOverEvent, "dataTransfer", {
+      configurable: true,
+      value: dragData
+    });
+    items[0].dispatchEvent(dragOverEvent);
+
+    const dropEvent = new context.Event("drop", { bubbles: true, cancelable: true });
+    Object.defineProperty(dropEvent, "dataTransfer", {
+      configurable: true,
+      value: dragData
+    });
+    items[0].dispatchEvent(dropEvent);
+    await flushTasks();
+
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({
+      "message-templates": [
+        { id: "follow-up", name: "Follow up", text: "Just checking in" },
+        { id: "welcome", name: "Welcome", text: "Hello there" }
+      ]
+    });
+    expect(
+      [...context.document.querySelectorAll("#template-list strong")].map((element) => element.textContent)
+    ).toEqual(["Follow up", "Welcome"]);
+    expect(context.document.getElementById("status").textContent).toBe(
+      "Template order updated for Follow up."
+    );
   });
 
   it("exports the current templates as a JSON download", async () => {

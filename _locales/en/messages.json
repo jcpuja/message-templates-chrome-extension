@@ -38,6 +38,17 @@
   "importTemplatesButton": {
     "message": "Import templates"
   },
+  "templateOrderHelp": {
+    "message": "Drag templates to change the order shown in the context menu."
+  },
+  "templateReorderHandleLabel": {
+    "message": "Drag to reorder template: $templateName$",
+    "placeholders": {
+      "templateName": {
+        "content": "$1"
+      }
+    }
+  },
   "editButton": {
     "message": "Edit"
   },
@@ -69,6 +80,14 @@
   },
   "statusTemplateAdded": {
     "message": "Template added."
+  },
+  "statusTemplateReordered": {
+    "message": "Template order updated for $templateName$.",
+    "placeholders": {
+      "templateName": {
+        "content": "$1"
+      }
+    }
   },
   "statusTemplatesExported": {
     "message": "Exported $templateCount$ templates.",

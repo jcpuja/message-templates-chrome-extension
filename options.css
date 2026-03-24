@@ -69,6 +69,11 @@ button.delete {
   margin-bottom: 16px;
 }
 
+.template-order-help {
+  margin: 0 0 12px;
+  color: #5f6368;
+}
+
 ul {
   list-style: none;
   padding: 0;
@@ -83,6 +88,16 @@ li {
   padding: 10px;
   display: grid;
   gap: 8px;
+  transition: border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+li.drag-over {
+  border-color: #1967d2;
+  box-shadow: 0 0 0 2px rgba(25, 103, 210, 0.14);
+}
+
+li.dragging {
+  opacity: 0.55;
 }
 
 .template-header {
@@ -90,6 +105,25 @@ li {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.template-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.drag-handle {
+  background: #e8f0fe;
+  color: #174ea6;
+  border: 1px solid #c6dafc;
+  padding: 6px 10px;
+  cursor: grab;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
 }
 
 .template-text {

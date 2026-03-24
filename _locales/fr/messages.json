@@ -38,6 +38,17 @@
   "importTemplatesButton": {
     "message": "Importer les modèles"
   },
+  "templateOrderHelp": {
+    "message": "Faites glisser les modèles pour modifier l'ordre affiché dans le menu contextuel."
+  },
+  "templateReorderHandleLabel": {
+    "message": "Faire glisser pour réorganiser le modèle : $templateName$",
+    "placeholders": {
+      "templateName": {
+        "content": "$1"
+      }
+    }
+  },
   "editButton": {
     "message": "Modifier"
   },
@@ -69,6 +80,14 @@
   },
   "statusTemplateAdded": {
     "message": "Modèle ajouté."
+  },
+  "statusTemplateReordered": {
+    "message": "Ordre du modèle mis à jour pour $templateName$.",
+    "placeholders": {
+      "templateName": {
+        "content": "$1"
+      }
+    }
   },
   "statusTemplatesExported": {
     "message": "$templateCount$ modèles exportés.",

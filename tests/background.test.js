@@ -111,6 +111,30 @@ describe("background.js", () => {
     });
   });
 
+  it("preserves stored template order in the context menu", async () => {
+    chrome.storage.sync.get.mockResolvedValue({
+      "message-templates": [
+        { id: "follow-up", name: "Follow up", text: "Just checking in" },
+        { id: "welcome", name: "Welcome", text: "Hello there" }
+      ]
+    });
+
+    await context.rebuildContextMenus();
+
+    expect(chrome.contextMenus.create).toHaveBeenNthCalledWith(2, {
+      id: "template-follow-up",
+      parentId: "message-templates-root",
+      title: "Follow up",
+      contexts: ["editable"]
+    });
+    expect(chrome.contextMenus.create).toHaveBeenNthCalledWith(3, {
+      id: "template-welcome",
+      parentId: "message-templates-root",
+      title: "Welcome",
+      contexts: ["editable"]
+    });
+  });
+
   it("injects the selected template into the clicked tab and frame", async () => {
     chrome.storage.sync.get.mockResolvedValue({
       "message-templates": [{ id: "welcome", name: "Welcome", text: "Hello there" }]
