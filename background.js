@@ -1,43 +1,10 @@
+importScripts("template-store.js");
+
 const ROOT_MENU_ID = "message-templates-root";
-const STORAGE_KEY = "message-templates";
-
-const DEFAULT_TEMPLATES = [
-  {
-    name: "Example template",
-    text: "A simple example text template"
-  }
-];
 let menuRefreshQueue = Promise.resolve();
-
-function sanitizeTemplate(template) {
-  if (!template || typeof template !== "object") {
-    return null;
-  }
-
-  const name = typeof template.name === "string" ? template.name.trim() : "";
-  const text = typeof template.text === "string" ? template.text : "";
-
-  if (!name || !text) {
-    return null;
-  }
-
-  return { name, text };
-}
 
 function buildMenuId(index) {
   return `template-${index}`;
-}
-
-async function getTemplates() {
-  const result = await chrome.storage.sync.get([STORAGE_KEY]);
-  const rawTemplates = result[STORAGE_KEY];
-
-  if (!Array.isArray(rawTemplates) || rawTemplates.length === 0) {
-    return DEFAULT_TEMPLATES;
-  }
-
-  const templates = rawTemplates.map(sanitizeTemplate).filter(Boolean);
-  return templates.length > 0 ? templates : DEFAULT_TEMPLATES;
 }
 
 async function createContextMenus() {
@@ -46,7 +13,7 @@ async function createContextMenus() {
 }
 
 async function rebuildContextMenus() {
-  const templates = await getTemplates();
+  const templates = await getTemplatesWithDefaults();
   await chrome.contextMenus.removeAll();
   await chrome.contextMenus.create({
     id: ROOT_MENU_ID,
@@ -99,15 +66,6 @@ function insertTemplateText(text) {
   }
 }
 
-async function ensureDefaultTemplates() {
-  const result = await chrome.storage.sync.get([STORAGE_KEY]);
-  const hasTemplates = Array.isArray(result[STORAGE_KEY]) && result[STORAGE_KEY].length > 0;
-
-  if (!hasTemplates) {
-    await chrome.storage.sync.set({ [STORAGE_KEY]: DEFAULT_TEMPLATES });
-  }
-}
-
 chrome.runtime.onInstalled.addListener(async () => {
   await ensureDefaultTemplates();
   await createContextMenus();
@@ -134,7 +92,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 
   const templateIndex = Number.parseInt(menuIdMatch[1], 10);
-  const templates = await getTemplates();
+  const templates = await getTemplatesWithDefaults();
   const selectedTemplate = templates[templateIndex];
 
   if (!selectedTemplate) {

@@ -1,5 +1,3 @@
-const STORAGE_KEY = "message-templates";
-
 const templateForm = document.getElementById("template-form");
 const templateNameInput = document.getElementById("template-name");
 const templateTextInput = document.getElementById("template-text");
@@ -9,31 +7,6 @@ const templateList = document.getElementById("template-list");
 const statusElement = document.getElementById("status");
 
 let editingIndex = null;
-
-function sanitizeTemplate(template) {
-  if (!template || typeof template !== "object") {
-    return null;
-  }
-
-  const name = typeof template.name === "string" ? template.name.trim() : "";
-  const text = typeof template.text === "string" ? template.text : "";
-
-  if (!name || !text) {
-    return null;
-  }
-
-  return { name, text };
-}
-
-async function getTemplates() {
-  const result = await chrome.storage.sync.get([STORAGE_KEY]);
-  const templates = Array.isArray(result[STORAGE_KEY]) ? result[STORAGE_KEY] : [];
-  return templates.map(sanitizeTemplate).filter(Boolean);
-}
-
-async function saveTemplates(templates) {
-  await chrome.storage.sync.set({ [STORAGE_KEY]: templates });
-}
 
 function setStatus(message) {
   statusElement.textContent = message;
@@ -56,7 +29,7 @@ function createDeleteButton(index) {
   button.className = "delete";
   button.textContent = "Delete";
   button.addEventListener("click", async () => {
-    const templates = await getTemplates();
+    const templates = await getStoredTemplates();
     templates.splice(index, 1);
 
     if (editingIndex === index) {
@@ -117,7 +90,7 @@ function createTemplateItem(template, index) {
 }
 
 async function renderTemplates() {
-  const templates = await getTemplates();
+  const templates = await getStoredTemplates();
   templateList.replaceChildren();
 
   templates.forEach((template, index) => {
@@ -143,7 +116,7 @@ templateForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  const templates = await getTemplates();
+  const templates = await getStoredTemplates();
 
   if (editingIndex !== null) {
     if (!templates[editingIndex]) {
