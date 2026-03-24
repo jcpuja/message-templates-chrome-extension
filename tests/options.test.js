@@ -118,6 +118,7 @@ describe("options.js", () => {
 
   it("renders the stored templates on load", () => {
     const items = [...context.document.querySelectorAll("#template-list li")];
+    const actionButtons = [...items[0].querySelectorAll(".template-actions button")];
 
     expect(items).toHaveLength(1);
     expect(context.document.title).toBe("Message Templates Settings");
@@ -126,6 +127,7 @@ describe("options.js", () => {
     expect(items[0].querySelector(".drag-handle")?.getAttribute("aria-label")).toBe(
       "Drag to reorder template: Welcome"
     );
+    expect(actionButtons.map((button) => button.className)).toEqual(["drag-handle", "edit", "delete"]);
     expect(context.document.querySelector("button.edit")?.textContent).toBe("Edit");
     expect(context.document.querySelector("button.delete")?.textContent).toBe("Delete");
   });

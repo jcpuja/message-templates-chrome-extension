@@ -194,18 +194,17 @@ function createTemplateItem(template) {
   const identity = document.createElement("div");
   identity.className = "template-identity";
 
-  const dragHandle = createDragHandle(template);
-
   const title = document.createElement("strong");
   title.textContent = template.name;
-  identity.append(dragHandle, title);
+  identity.append(title);
 
   const actions = document.createElement("div");
   actions.className = "template-actions";
 
+  const dragHandle = createDragHandle(template);
   const editButton = createEditButton(template);
   const removeButton = createDeleteButton(template.id);
-  actions.append(editButton, removeButton);
+  actions.append(dragHandle, editButton, removeButton);
 
   header.append(identity, actions);
 
