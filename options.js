@@ -10,7 +10,6 @@ const templateList = document.getElementById("template-list");
 const statusElement = document.getElementById("status");
 
 let editingTemplateId = null;
-let draggedTemplateId = null;
 
 function getMessage(key, substitutions) {
   return chrome.i18n.getMessage(key, substitutions) || key;
@@ -31,6 +30,15 @@ function localizePage() {
 
 function setStatus(message) {
   statusElement.textContent = message;
+}
+
+function clearDragState() {
+  templateList.querySelectorAll(".dragging").forEach((item) => {
+    item.classList.remove("dragging");
+  });
+  templateList.querySelectorAll(".drag-over").forEach((item) => {
+    item.classList.remove("drag-over");
+  });
 }
 
 function setFormMode(isEditing) {
@@ -106,6 +114,10 @@ function moveTemplate(templates, sourceTemplateId, targetTemplateId) {
   return reorderedTemplates;
 }
 
+function getDraggingTemplateItem() {
+  return templateList.querySelector(".dragging");
+}
+
 function createDragHandle(template) {
   const handle = document.createElement("button");
   handle.type = "button";
@@ -115,7 +127,6 @@ function createDragHandle(template) {
   handle.setAttribute("aria-label", getMessage("templateReorderHandleLabel", template.name));
   handle.title = getMessage("templateReorderHandleLabel", template.name);
   handle.addEventListener("dragstart", (event) => {
-    draggedTemplateId = template.id;
     const templateItem = handle.closest("li");
 
     if (templateItem) {
@@ -128,13 +139,7 @@ function createDragHandle(template) {
     }
   });
   handle.addEventListener("dragend", () => {
-    draggedTemplateId = null;
-    templateList.querySelectorAll(".dragging").forEach((item) => {
-      item.classList.remove("dragging");
-    });
-    templateList.querySelectorAll(".drag-over").forEach((item) => {
-      item.classList.remove("drag-over");
-    });
+    clearDragState();
   });
 
   return handle;
@@ -144,7 +149,9 @@ function createTemplateItem(template) {
   const item = document.createElement("li");
   item.dataset.templateId = template.id;
   item.addEventListener("dragover", (event) => {
-    if (!draggedTemplateId || draggedTemplateId === template.id) {
+    const draggingTemplateId = getDraggingTemplateItem()?.dataset.templateId || "";
+
+    if (!draggingTemplateId || draggingTemplateId === template.id) {
       return;
     }
 
@@ -170,22 +177,27 @@ function createTemplateItem(template) {
     event.preventDefault();
     item.classList.remove("drag-over");
 
-    if (!draggedTemplateId || draggedTemplateId === template.id) {
+    const droppedTemplateId = event.dataTransfer?.getData("text/plain") || "";
+
+    if (!droppedTemplateId || droppedTemplateId === template.id) {
+      clearDragState();
       return;
     }
 
     const templates = await getStoredTemplates();
-    const nextTemplates = moveTemplate(templates, draggedTemplateId, template.id);
+    const nextTemplates = moveTemplate(templates, droppedTemplateId, template.id);
 
     if (nextTemplates === templates) {
+      clearDragState();
       return;
     }
 
     await saveTemplates(nextTemplates);
     await renderTemplates();
 
-    const movedTemplate = nextTemplates.find((entry) => entry.id === draggedTemplateId);
+    const movedTemplate = nextTemplates.find((entry) => entry.id === droppedTemplateId);
     setStatus(getMessage("statusTemplateReordered", movedTemplate?.name || ""));
+    clearDragState();
   });
 
   const header = document.createElement("div");

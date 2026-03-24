@@ -145,7 +145,8 @@ describe("options.js", () => {
     const dragData = {
       effectAllowed: "",
       dropEffect: "",
-      setData: vi.fn()
+      setData: vi.fn(),
+      getData: vi.fn(() => "follow-up")
     };
 
     const dragStartEvent = new context.Event("dragstart", { bubbles: true });
@@ -170,6 +171,7 @@ describe("options.js", () => {
     items[0].dispatchEvent(dropEvent);
     await flushTasks();
 
+    expect(dragData.getData).toHaveBeenCalledWith("text/plain");
     expect(chrome.storage.sync.set).toHaveBeenCalledWith({
       "message-templates": [
         { id: "follow-up", name: "Follow up", text: "Just checking in" },
@@ -182,6 +184,50 @@ describe("options.js", () => {
     expect(context.document.getElementById("status").textContent).toBe(
       "Template order updated for Follow up."
     );
+  });
+
+  it("reorders templates even if dragend fires before drop", async () => {
+    storedTemplates = [
+      { id: "welcome", name: "Welcome", text: "Hello there" },
+      { id: "follow-up", name: "Follow up", text: "Just checking in" }
+    ];
+
+    await context.renderTemplates();
+
+    const handles = [...context.document.querySelectorAll(".drag-handle")];
+    const items = [...context.document.querySelectorAll("#template-list li")];
+    const dragData = {
+      effectAllowed: "",
+      dropEffect: "",
+      setData: vi.fn(),
+      getData: vi.fn(() => "follow-up")
+    };
+
+    const dragStartEvent = new context.Event("dragstart", { bubbles: true });
+    Object.defineProperty(dragStartEvent, "dataTransfer", {
+      configurable: true,
+      value: dragData
+    });
+    handles[1].dispatchEvent(dragStartEvent);
+
+    const dragEndEvent = new context.Event("dragend", { bubbles: true });
+    handles[1].dispatchEvent(dragEndEvent);
+
+    const dropEvent = new context.Event("drop", { bubbles: true, cancelable: true });
+    Object.defineProperty(dropEvent, "dataTransfer", {
+      configurable: true,
+      value: dragData
+    });
+    items[0].dispatchEvent(dropEvent);
+    await flushTasks();
+
+    expect(dragData.getData).toHaveBeenCalledWith("text/plain");
+    expect(chrome.storage.sync.set).toHaveBeenCalledWith({
+      "message-templates": [
+        { id: "follow-up", name: "Follow up", text: "Just checking in" },
+        { id: "welcome", name: "Welcome", text: "Hello there" }
+      ]
+    });
   });
 
   it("exports the current templates as a JSON download", async () => {
